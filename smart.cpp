@@ -10,6 +10,7 @@ Scalar colorGreen = Scalar(0, 255, 0);
 Scalar colorRed = Scalar(0, 0, 255);
 Scalar colorBlue = Scalar(255, 0, 0);
 Scalar colorYellow = Scalar(0, 255, 255);
+queue<Vec4i> slopeOfBridge;
 
 class LaneFinder : public Model {
 public:
@@ -29,7 +30,7 @@ public:
 		/* the detected hough lines are for the roi image
 		hence need to add the offset y to the detected lines for displaying in the full image */
 		int y_offset = im_edge.rows * 0.6;
-		double maxYl = img.size().height, maxYr = img.size().height, maxXl = 0, maxXr = 0;
+		double  maxXl = 0, maxYl = img.size().height, maxXr = 0, maxYr = img.size().height;
 	//	cout << img.size().width << " " << img.size().height << " " << "init max height: " << maxY << "\n";
 		for (size_t i = 0; i < lines.size(); i++) {
 			bool skipFlagSlope = false;
@@ -43,19 +44,15 @@ public:
 				slope -= 360;
 			if (slope < -360)
 				slope += 360;
-			//cout << "      slope2: " << slope << "\n";
-			// lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
+			//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
 			if (abs(abs(slope) - 45) > 15.0)
 				skipFlagSlope = true;
-			// do not draw lines if any of the flags are set
+			//do not draw lines if any of the flags are set
 			if (!skipFlagSlope) {
 				if(slope > 0)
 					line(out, Point(x1, y1), Point(x2, y2), colorRed, 2, 8);
 				else
 					line(out, Point(x1, y1), Point(x2, y2), colorBlue, 2, 8);
-				//line(out, Point(lines[i][0], lines[i][1]), Point(lines[i][2], lines[i][3]), colorR, 2, 8);
-				//cout << slope << "       x1: " << x1 << "  y1: " << y1 << "  x2: " << x2 << "  y2: " << y2 << "\n";
-				
 				if(slope < 0) {
 					if(y1 < maxYl || y2 < maxYl) {
 						maxYl = (y1 > y2) ? y2 : y1;
@@ -73,6 +70,9 @@ public:
 		//line(out, Point(0, maxYl), Point(img.size().width, maxYl), colorBlue, 2, LINE_8, 0);
 		//line(out, Point(0, maxYr), Point(img.size().width, maxYr), colorRed, 2, LINE_8, 0);
 		line(out, Point(maxXl, maxYl), Point(maxXr, maxYr), colorYellow, 2, LINE_8, 0);
+		slopeOfBridge.push(Vec4i(maxXl, maxYl, maxXr, maxYr));
+		if (slopeOfBridge.size() > 6)
+			slopeOfBridge.pop();
 	}
 };
 
