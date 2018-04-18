@@ -5,12 +5,14 @@ using namespace std;
 using namespace cv;
 
 void merge();
+void avSlope(deque<Vec4i> v, Point& leftAve, Point& rightAve);
 
 Scalar colorGreen = Scalar(0, 255, 0);
 Scalar colorRed = Scalar(0, 0, 255);
 Scalar colorBlue = Scalar(255, 0, 0);
 Scalar colorYellow = Scalar(0, 255, 255);
-queue<Vec4i> slopeOfBridge;
+Scalar colorOrange = Scalar(0, 165, 255);
+deque<Vec4i> slopeOfBridge;
 
 class LaneFinder : public Model {
 public:
@@ -70,11 +72,29 @@ public:
 		//line(out, Point(0, maxYl), Point(img.size().width, maxYl), colorBlue, 2, LINE_8, 0);
 		//line(out, Point(0, maxYr), Point(img.size().width, maxYr), colorRed, 2, LINE_8, 0);
 		line(out, Point(maxXl, maxYl), Point(maxXr, maxYr), colorYellow, 2, LINE_8, 0);
-		slopeOfBridge.push(Vec4i(maxXl, maxYl, maxXr, maxYr));
-		if (slopeOfBridge.size() > 6)
-			slopeOfBridge.pop();
+		slopeOfBridge.push_front(Vec4i(maxXl, maxYl, maxXr, maxYr));
+		if (slopeOfBridge.size() > 8) {
+			slopeOfBridge.pop_back();
+			Point leftAve, rightAve;
+			avSlope(slopeOfBridge, leftAve, rightAve);
+			line(out, leftAve, rightAve, colorOrange, 2, LINE_8, 0);
+		}
+			
 	}
 };
+
+void avSlope(deque<Vec4i> v, Point& leftAve, Point& rightAve) {
+	double xLave = 0, yLave = 0, xRave = 0, yRave = 0;
+	int num = 8;
+	for(int i = 0; i < 8; i++) {
+		xLave += v[i][0];
+		yLave += v[i][1];
+		xRave += v[i][2];
+		yRave += v[i][3];
+	}
+	leftAve = Point(xLave / num, yLave/num);
+	rightAve = Point(xRave / num, yRave / num);
+}
 
 int main() {
 	VideoController vid;
