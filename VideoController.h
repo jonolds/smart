@@ -64,7 +64,6 @@ public:
 		Mat currentFrame, outputFrame; // define Mat for currentFrame and outFrame
 		namedWindow(outWindowName);
 		initWriter(); //initialize videowriter object; this will set/unset 'isWriterInitialized'
-		
 		while (!stop) { // read each frame in video	
 			if (!vidreader.read(currentFrame)) // read next frame
 				break;
@@ -81,9 +80,10 @@ public:
 			double remainingTime = (1000/fps) - (elaspedTime);
 			if (remainingTime > 1) // if positive wait for the remaining time
 				waitKey(remainingTime);
-			else 
+				//waitKey();
+			else
 				waitKey(1); // delay for 1 ms if elaspedtime>delay
-				
+				//waitKey();
 		}
 		Scalar m = mean(Mat(frameProcessingTime));
 		cout << endl << " mean frame processing time " << sum(sum(m)) << endl;
