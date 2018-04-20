@@ -13,6 +13,9 @@ Scalar colorBlue = Scalar(255, 0, 0);
 Scalar colorYellow = Scalar(0, 255, 255);
 Scalar colorOrange = Scalar(0, 165, 255);
 deque<Vec4i> slopeOfBridge;
+vector<float> slopes;
+vector<Vec4f> negSlopePts, posSlopePts;
+Point lastOleft, lastOright;
 
 class LaneFinder : public Model {
 public:
@@ -28,7 +31,7 @@ public:
 
 		vector<Vec4i> lines;
 		// 1st best {30, 20, 20} > {30,10,20}>{40, 20, 10} 
-		HoughLinesP(roi, lines, 1, 1 * CV_PI / 180, 30, 20, 20);
+		HoughLinesP(roi, lines, 1, 1 * CV_PI / 180, 30, 20, 40);
 		/* the detected hough lines are for the roi image
 		hence need to add the offset y to the detected lines for displaying in the full image */
 		int y_offset = im_edge.rows * 0.6;
@@ -40,21 +43,30 @@ public:
 			lines[i][3] += y_offset;
 			// calculated slope is with reference to origin at botton left, aka mathematical orignal
 			float x1 = lines[i][0], y1 = lines[i][1], x2 = lines[i][2], y2 = lines[i][3];
-			float slope = (y2 - y1) / (x2 - x1);
+			double slope = (y2 - y1) / (x2 - x1);
 			slope = tan(slope) * 180 / CV_PI;
 			if (slope > 360)
 				slope -= 360;
 			if (slope < -360)
 				slope += 360;
 			//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
-			if (abs(abs(slope) - 45) > 15.0)
+			//cout << x1 << " " << x2 << " " << " " << slope << " " << (float)img.size().width << " " << (float)img.size().width*0.6 << "\n";
+			if ((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && x2 > img.size().width*0.55) || (slope < 0 && x1 > img.size().width*0.55) 
+				|| (slope > 0 && x2 < img.size().width*0.4) || (slope > 0 && x1 < img.size().width*0.4))
 				skipFlagSlope = true;
 			//do not draw lines if any of the flags are set
 			if (!skipFlagSlope) {
-				if(slope > 0)
+				if (slope > 0) {
+					cout << "RED " << x1 << " " << x2 << " " << " " << slope << " " << (float)img.size().width << " " << (float)img.size().width*0.6 << "\n";
+					//posSlopePts.emplace_back(x1, y1, x2, y2);
 					line(out, Point(x1, y1), Point(x2, y2), colorRed, 2, 8);
-				else
+				}
+				else {
+					cout << "BLUE " << x1 << " " << x2 << " " << " " << slope << " " << (float)img.size().width << " " << (float)img.size().width*0.6 << "\n";
+					//negSlopePts.emplace_back(x1, y1, x2, y2);
 					line(out, Point(x1, y1), Point(x2, y2), colorBlue, 2, 8);
+				}
+					
 				if(slope < 0) {
 					if(y1 < maxYl || y2 < maxYl) {
 						maxYl = (y1 > y2) ? y2 : y1;
@@ -69,15 +81,23 @@ public:
 				}
 			}
 		}
+		//for(int i = 0; (unsigned)i < posSlopePts.size(); i++)
+		//	line(out, Point(posSlopePts[i][0], posSlopePts[i][1]), Point(posSlopePts[i][2], posSlopePts[i][3]), colorRed, 2, 8);
+		//for (int i = 0; (unsigned)i < negSlopePts.size(); i++)
+		//	line(out, Point(negSlopePts[i][0], negSlopePts[i][1]), Point(negSlopePts[i][2], negSlopePts[i][3]), colorBlue, 2, 8);
 		//line(out, Point(0, maxYl), Point(img.size().width, maxYl), colorBlue, 2, LINE_8, 0);
 		//line(out, Point(0, maxYr), Point(img.size().width, maxYr), colorRed, 2, LINE_8, 0);
 		line(out, Point(maxXl, maxYl), Point(maxXr, maxYr), colorYellow, 2, LINE_8, 0);
 		slopeOfBridge.push_front(Vec4i(maxXl, maxYl, maxXr, maxYr));
-		if (slopeOfBridge.size() > 8) {
+		if (slopeOfBridge.size() > 6) {
 			slopeOfBridge.pop_back();
 			Point leftAve, rightAve;
 			avSlope(slopeOfBridge, leftAve, rightAve);
 			line(out, leftAve, rightAve, colorOrange, 2, LINE_8, 0);
+
+			float orangeSlope = ((float)rightAve.y - (float)leftAve.y) / ((float)rightAve.x - (float)leftAve.x);
+			orangeSlope = tan(orangeSlope) * 180 / CV_PI;
+			slopes.push_back(orangeSlope);
 		}
 			
 	}
@@ -85,8 +105,8 @@ public:
 
 void avSlope(deque<Vec4i> v, Point& leftAve, Point& rightAve) {
 	double xLave = 0, yLave = 0, xRave = 0, yRave = 0;
-	int num = 8;
-	for(int i = 0; i < 8; i++) {
+	int num = 6;
+	for(int i = 0; i < num; i++) {
 		xLave += v[i][0];
 		yLave += v[i][1];
 		xRave += v[i][2];
@@ -99,15 +119,17 @@ void avSlope(deque<Vec4i> v, Point& leftAve, Point& rightAve) {
 int main() {
 	VideoController vid;
 	LaneFinder LD;
-	vid.setInputVideo("challenge.mp4");
+	vid.setInputVideo("p3.mp4");
 	vid.setOutVidName("myOutputCarLanesVideo.avi");
 	vid.setOutWindowName("processed frame");
 	vid.setAlgorithmModel(&LD);
 
 	vid.run();
-	char ch;
+	//for (int i = 0; i < slopes.size(); i++)
+		//cout << slopes.at(i) << "\n";
+	/*char ch;
 	cout << "Input any key to quit";
-	cin >> ch;
+	cin >> ch;*/
 	return 0;
 }
 

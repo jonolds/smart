@@ -79,11 +79,11 @@ public:
 			// find the remaining delay as the framew processing+imshow+write took elasped time
 			double remainingTime = (1000/fps) - (elaspedTime);
 			if (remainingTime > 1) // if positive wait for the remaining time
-				waitKey(remainingTime);
-				//waitKey();
+				//waitKey(remainingTime);
+				waitKey();
 			else
-				waitKey(1); // delay for 1 ms if elaspedtime>delay
-				//waitKey();
+				//waitKey(1); // delay for 1 ms if elaspedtime>delay
+				waitKey();
 		}
 		Scalar m = mean(Mat(frameProcessingTime));
 		cout << endl << " mean frame processing time " << sum(sum(m)) << endl;
