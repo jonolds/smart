@@ -22,6 +22,7 @@
     <ClCompile Include="smart.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="alg.h" />
     <ClInclude Include="VideoController.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

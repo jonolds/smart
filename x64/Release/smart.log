@@ -1,20 +1,9 @@
 ﻿  smart.cpp
-c:\visual\base\smart\videocontroller.h(31): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\videocontroller.h(30): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\videocontroller.h(58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(30): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(37): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(45): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-c:\visual\base\smart\smart.cpp(62): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(67): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(90): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(91): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(99): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\visual\base\smart\smart.cpp(115): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-c:\visual\base\smart\smart.cpp(116): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+c:\visual\base\smart\alg.h(22): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+c:\visual\base\smart\alg.h(81): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
   Generating code
-  2 of 598 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
+  1 of 501 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   smart.vcxproj -> C:\visual\base\x64\Release\smart.exe

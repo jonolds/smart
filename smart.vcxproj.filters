@@ -18,6 +18,9 @@
     <ClInclude Include="VideoController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="alg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="smart.cpp">
