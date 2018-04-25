@@ -11,11 +11,10 @@ void Alg::process(Mat& src, Mat& out) {
 	Mat img = cannyAndHough(src, out, lines);
 	linesDraw(img, out, lines);
 }
-
 void Alg::process2(Mat& src, Mat& out) {
 	vector<Vec4i> lines;
 	Mat img = cannyAndHough(src, out, lines);
-	linesDraw2(img, out, lines);
+	linesDraw(img, out, lines);
 }
 
 void Alg::linesDraw(Mat &img, Mat&out, vector<Vec4i> &lines) {
@@ -31,41 +30,7 @@ void Alg::linesDraw(Mat &img, Mat&out, vector<Vec4i> &lines) {
 		while (slope < -360)
 			slope += 360;
 		//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
-		if ((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && x2 > img.size().width*0.55) || (slope < 0 && x1 > img.size().width*0.55)
-			|| (slope > 0 && x2 < img.size().width*0.4) || (slope > 0 && x1 < img.size().width*0.4))
-			skipFlagSlope = true;
-		if (!skipFlagSlope) {
-			if (slope > 0) {
-				line(out, Point(x1, y1), Point(x2, y2), colRed, 2, 8);
-				if (y1 < maxRight.y || y2 < maxLeft.y)
-					maxRight = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
-			}
-
-			else {
-				line(out, Point(x1, y1), Point(x2, y2), colBlue, 2, 8);
-				if (y1 < maxRight.y || y2 < maxLeft.y)
-					maxLeft = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
-			}
-			cout << ((slope > 0) ? "RED " : "BLUE ") << x1 << " " << x2 << " " << " " << slope << "\n";
-		}
-	}
-	slopeOfBridge.push_front(Vec4i(maxLeft.x, maxLeft.y, maxRight.x, maxRight.y));
-	drawOrange(out);
-}
-void Alg::linesDraw2(Mat &img, Mat&out, vector<Vec4i> &lines) {
-	Point maxLeft(0, img.size().height), maxRight(0, img.size().height);
-	for (size_t i = 0; i < lines.size(); i++) {
-		bool skipFlagSlope = false;
-		lines[i][1] += y_offset;
-		lines[i][3] += y_offset;
-		int x1 = lines[i][0], y1 = lines[i][1], x2 = lines[i][2], y2 = lines[i][3];
-		double slope = x2 - x1 != 0 ? (tan(double(y2 - y1) / double(x2 - x1)) * 180) / CV_PI : 99.0;
-		while (slope > 360) //slope reference to origin at botton left/mathematical orignal
-			slope -= 360;
-		while (slope < -360)
-			slope += 360;
-		//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
-		if ((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && (x2 > img.size().width*0.55 || x1 > img.size().width*0.55)) 
+		if ((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && (x2 > img.size().width*0.55 || x1 > img.size().width*0.55))
 			|| (slope > 0 && (x2 < img.size().width*0.4 || x1 < img.size().width*0.4)))
 			skipFlagSlope = true;
 		if (!skipFlagSlope) {
