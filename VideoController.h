@@ -1,23 +1,19 @@
 #ifndef _VIDEOCONTROLLER_H_
 #define  _VIDEOCONTROLLER_H_
 #include "VideoController.h"
+#include "Alg.h"
 using namespace std;
 using namespace cv;
 
-class Alg {
-public:
-virtual void process(Mat &input, Mat &output)= 0;
-virtual void process2(Mat &input, Mat &output) = 0;
-};
 
 class VideoController {
-	VideoCapture vidreader; //define opencv video capture object, vidreader.
-	VideoWriter writer; //define video writer object
-	Alg * algPtr; //Should have arguments list signature, i.e.(const Mat& src, Mat& dest)
-	int fps; //define a property to hold the input video rate in frame per sec.
-	string outWindowName, outVidName; //saved only if outVidName specified. Same fps/size as input
+	VideoCapture vidreader;
+	VideoWriter writer;
+	Alg * algPtr;
+	int fps;
+	string outWindowName, outVidName;
 	bool stop = false, isVidOpen, isWriterInitialized;
-	vector<double> frameProcessingTime; // used for storing frameprocessing times(in ms
+	vector<double> frameProcessingTime; //used for storing frameprocessing times(in ms
 
 	bool isOutputVideoSaveReqd() { return (!outVidName.empty()); }
 	void initWriter() {
@@ -39,7 +35,6 @@ public:
 	~VideoController() { writer.release(); vidreader.release(); }
 	void setOutVidName(string name) { outVidName = name; }
 	void setOutWindowName(string name) { outWindowName = name; }
-	void setAlgorithmModel(Alg* m) { algPtr = m; }
 	void setInputVideo(string ipVideoName) {
 		vidreader.release();
 		vidreader.open(ipVideoName);
@@ -52,28 +47,25 @@ public:
 		fps = int(vidreader.get(CAP_PROP_FPS));
 		cout << "fps: " << fps << "\n";
 	}
-	
 	void run() {
-		CV_Assert(isVidOpen); // assert if the video is not opened.
-		Mat currentFrame, outputFrame; // define Mat for currentFrame and outFrame
+		CV_Assert(isVidOpen);
+		Mat currentFrame, outputFrame;
 		namedWindow(outWindowName);
-		initWriter(); //initialize videowriter object; this will set/unset 'isWriterInitialized'
+		initWriter();
 		int frameCount = 0;
 		while (!stop && frameCount < 247) { // read each frame in video	
 			if (!vidreader.read(currentFrame)) // read next frame
 				break;
 			cout << frameCount << "\n";
 			int initialTime = int(getTickCount());
-			algPtr->process2(currentFrame, outputFrame); // call the function pointer
+			algPtr->process(currentFrame, outputFrame);
 			double frameProcessTime = ((double(getTickCount()) - initialTime) / getTickFrequency()) * 1000;
 			frameProcessingTime.push_back(frameProcessTime);
 			imshow(outWindowName, outputFrame);
-			if (isWriterInitialized) //write only if the writer is initialized
+			if (isWriterInitialized)
 				writer.write(outputFrame);
-			//get elasped time in ms since the video frame read
-			int elaspedTime = int((getTickCount()-initialTime)/(1000*getTickFrequency()));
-			// find the remaining delay as the framew processing+imshow+write took elasped time
-			int remainingTime = (1000/fps) - (elaspedTime);
+			int elaspedTime = int((getTickCount()-initialTime)/(1000*getTickFrequency()));//from start of frame read
+			int remainingTime = (1000/fps) - (elaspedTime);//used to prevent early play/process of next frame
 			frameCount++;
 			if (remainingTime > 1) // if positive wait for the remaining time
 				waitKey(remainingTime);

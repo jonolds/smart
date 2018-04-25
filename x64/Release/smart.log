@@ -1,8 +1,6 @@
-﻿  smart.cpp
-c:\visual\base\smart\alg.h(124): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+﻿  Alg.cpp
+  smart.cpp
   Generating code
-  1 of 506 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  All 496 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   smart.vcxproj -> C:\visual\base\x64\Release\smart.exe

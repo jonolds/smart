@@ -18,12 +18,15 @@
     <ClInclude Include="VideoController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="alg.h">
+    <ClInclude Include="Alg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="smart.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Alg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
