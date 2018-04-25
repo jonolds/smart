@@ -7,7 +7,7 @@ using namespace cv;
 class Alg {
 public:
 virtual void process(Mat &input, Mat &output)= 0;
-virtual void process1(Mat &input, Mat &output) = 0;
+virtual void process2(Mat &input, Mat &output) = 0;
 };
 
 class VideoController {
@@ -64,7 +64,7 @@ public:
 				break;
 			cout << frameCount << "\n";
 			int initialTime = int(getTickCount());
-			algPtr->process(currentFrame, outputFrame); // call the function pointer
+			algPtr->process2(currentFrame, outputFrame); // call the function pointer
 			double frameProcessTime = ((double(getTickCount()) - initialTime) / getTickFrequency()) * 1000;
 			frameProcessingTime.push_back(frameProcessTime);
 			imshow(outWindowName, outputFrame);
