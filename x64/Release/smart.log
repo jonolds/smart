@@ -1,6 +1,7 @@
 ﻿  Alg.cpp
-  smart.cpp
   Generating code
-  All 496 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  0 of 492 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   smart.vcxproj -> C:\visual\base\x64\Release\smart.exe

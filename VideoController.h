@@ -31,7 +31,7 @@ class VideoController {
 		}
 	}
 public:
-	VideoController() : algPtr(nullptr), fps(0), outWindowName("Output"), isVidOpen(false), isWriterInitialized(false) {}
+	VideoController() : algPtr(new Alg()), fps(0), outWindowName("Output"), isVidOpen(false), isWriterInitialized(false) {}
 	~VideoController() { writer.release(); vidreader.release(); }
 	void setOutVidName(string name) { outVidName = name; }
 	void setOutWindowName(string name) { outWindowName = name; }
