@@ -18,7 +18,7 @@ public:
 	void drawOrAndYel(Mat& out);
 	Mat cannyAndHough(Mat &src, Mat &out, vector<Vec4i> &lines);
 	void sortLines(Mat& img, vector<Vec4i> &lines, vector<Vec4i> &blues, vector<Vec4i> &reds);
-	void combineLines(Mat& img, vector<Vec4i> &blues, vector<Vec4i> &reds);
+	void combineLines(vector<Vec4i> &blues, vector<Vec4i> &reds, vector<Vec4i> &blueFrameLines, vector<Vec4i> &redFrameLines);
 	void static drawLines(Mat&out, vector<Vec4i> blues, vector<Vec4i> reds);
 	void addText(Mat &tmp, double slope, vector<Vec4i> lines, int i);
 	void setYoffset(int i);

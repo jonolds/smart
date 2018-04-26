@@ -3,19 +3,18 @@
 #include<opencv2/opencv.hpp>
 using namespace std;
 using namespace cv;
-
 Scalar colGreen = Scalar(0, 255, 0), colRed = Scalar(0, 0, 255), colBlue = Scalar(255, 0, 0), colYellow = Scalar(0, 255, 255), colOrange = Scalar(0, 165, 255);
 
 void Alg::process(Mat& src, Mat& out) {
-	vector<Vec4i> lines, blues, reds;
+	vector<Vec4i> lines, blues, reds, blueFrameLines, redFrameLines;
 	Mat img = cannyAndHough(src, out, lines);
 	sortLines(img, lines, blues, reds);
-	combineLines(img, blues, reds);
+	combineLines(blues, reds, blueFrameLines, redFrameLines);
 	drawLines(out, blues, reds);
 	drawOrAndYel(out);
 }
 
-void Alg::combineLines(Mat& img, vector<Vec4i> &blues, vector<Vec4i> &reds) {
+void Alg::combineLines(vector<Vec4i> &blues, vector<Vec4i> &reds, vector<Vec4i> &blueFrameLines, vector<Vec4i> &redFrameLines) {
 
 }
 
