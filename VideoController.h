@@ -13,7 +13,7 @@ class VideoController {
 	int fps;
 	string outWindowName, outVidName;
 	bool stop = false, isVidOpen, isWriterInitialized;
-	vector<double> frProcTime; //used for storing frameprocessing times(in ms
+	vector<double> frProcTimeVec; //used for storing frameprocessing times(in ms
 
 	bool isOutputVideoSaveReqd() { return (!outVidName.empty()); }
 	
@@ -21,8 +21,7 @@ class VideoController {
 		if (isOutputVideoSaveReqd()) {
 			writer.release(); // release any previous instance of writer object
 			int codec = static_cast<int>(vidreader.get(CAP_PROP_FOURCC));
-			//Size sz = Size(int(vidreader.get(CAP_PROP_FRAME_WIDTH)), int(vidreader.get(CAP_PROP_FRAME_HEIGHT)));
-			Size sz = Size(432, 240);
+			Size sz = Size(vidreader.get(CAP_PROP_FRAME_WIDTH), vidreader.get(CAP_PROP_FRAME_HEIGHT));
 			writer.open(outVidName, codec, fps, sz, true);
 			if (!writer.isOpened()) {
 				cout << " Error while calling the cv::VideoWriter.open(" << outVidName << ")" << endl;
@@ -68,9 +67,9 @@ public:
 				break;
 			int initialTime = int(getTickCount());
 			algPtr->process(currentFrame, outputFrame);
-			//cout << "height: " << outputFrame.size().height << "          width: " << outputFrame.size().width << "\n";
+			cout << "frame: " << frameCount << "\n";
 			double frameProcessTime = ((double(getTickCount()) - initialTime) / getTickFrequency()) * 1000;
-			frProcTime.push_back(frameProcessTime);
+			frProcTimeVec.push_back(frameProcessTime);
 			imshow(outWindowName, outputFrame);
 			if (isWriterInitialized)
 				writer.write(outputFrame);
@@ -83,8 +82,8 @@ public:
 				waitKey(1); // delay for 1 ms if elaspedtime>delay
 		}
 		
-		Scalar m = mean(Mat(frProcTime));
-		//cout <<"\nMean frame proc time "<< sum(sum(m)) <<"  frames: "<< frProcTime.size() << "\n";
+		Scalar m = mean(Mat(frProcTimeVec));
+		cout <<"\nMean frame proc time "<< sum(sum(m)) <<"  frames: "<< frProcTimeVec.size() << "\n";
 		writer.release();
 		vidreader.release();
 		waitKey();

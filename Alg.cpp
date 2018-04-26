@@ -7,48 +7,16 @@ using namespace cv;
 Scalar colGreen = Scalar(0, 255, 0), colRed = Scalar(0, 0, 255), colBlue = Scalar(255, 0, 0), colYellow = Scalar(0, 255, 255), colOrange = Scalar(0, 165, 255);
 
 void Alg::process(Mat& src, Mat& out) {
-	vector<Vec4i> lines;
+	vector<Vec4i> lines, blues, reds;
 	Mat img = cannyAndHough(src, out, lines);
-	linesDraw(img, out, lines);
-}
-void Alg::process2(Mat& src, Mat& out) {
-	vector<Vec4i> lines;
-	Mat img = cannyAndHough(src, out, lines);
-	linesDraw(img, out, lines);
+	sortLines(img, lines, blues, reds);
+	combineLines(img, blues, reds);
+	drawLines(out, blues, reds);
+	drawOrAndYel(out);
 }
 
-void Alg::linesDraw(Mat &img, Mat&out, vector<Vec4i> &lines) {
-	Point maxLeft(0, img.size().height), maxRight(0, img.size().height);
-	for (size_t i = 0; i < lines.size(); i++) {
-		bool skipFlagSlope = false;
-		lines[i][1] += y_offset;
-		lines[i][3] += y_offset;
-		int x1 = lines[i][0], y1 = lines[i][1], x2 = lines[i][2], y2 = lines[i][3];
-		double slope = x2 - x1 != 0 ? (tan(double(y2 - y1) / double(x2 - x1)) * 180) / CV_PI : 99.0;
-		while (slope > 360) //slope reference to origin at botton left/mathematical orignal
-			slope -= 360;
-		while (slope < -360)
-			slope += 360;
-		//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
-		if ((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && (x2 > img.size().width*0.55 || x1 > img.size().width*0.55))
-			|| (slope > 0 && (x2 < img.size().width*0.4 || x1 < img.size().width*0.4)))
-			skipFlagSlope = true;
-		if (!skipFlagSlope) {
-			if (slope > 0) {
-				line(out, Point(x1, y1), Point(x2, y2), colRed, 2, 8);
-				if (y1 < maxRight.y || y2 < maxLeft.y)
-					maxRight = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
-			}
-			else {
-				line(out, Point(x1, y1), Point(x2, y2), colBlue, 2, 8);
-				if (y1 < maxRight.y || y2 < maxLeft.y)
-					maxLeft = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
-			}
-			cout << ((slope > 0) ? "RED " : "BLUE ") << x1 << " " << x2 << " " << " " << slope << "\n";
-		}
-	}
-	slopeOfBridge.push_front(Vec4i(maxLeft.x, maxLeft.y, maxRight.x, maxRight.y));
-	drawOrange(out);
+void Alg::combineLines(Mat& img, vector<Vec4i> &blues, vector<Vec4i> &reds) {
+
 }
 
 Mat Alg::cannyAndHough(Mat &src, Mat &out, vector<Vec4i> &lines) {
@@ -67,16 +35,52 @@ Mat Alg::cannyAndHough(Mat &src, Mat &out, vector<Vec4i> &lines) {
 	return img;
 }
 
-void Alg::drawOrange(Mat& out) {
-	line(out, Point(slopeOfBridge[0][0], slopeOfBridge[0][1]), Point(slopeOfBridge[0][2], slopeOfBridge[0][3]), colYellow, 2, LINE_8, 0);
-	if(slopeOfBridge.size() > 6) {
-		double xLave = 0.0, yLave = 0.0, xRave = 0.0, yRave = 0.0, num = 6.0;
-		slopeOfBridge.pop_back();
-		for (int i = 0; i < num; i++) {
-			xLave += slopeOfBridge[i][0]; yLave += slopeOfBridge[i][1];
-			xRave += slopeOfBridge[i][2]; yRave += slopeOfBridge[i][3];
+void Alg::sortLines(Mat &img, vector<Vec4i> &lines, vector<Vec4i> &blues, vector<Vec4i> &reds) {
+	Point maxBlue(0, img.size().height), maxRed(0, img.size().height);
+	for (size_t i = 0; i < lines.size(); i++) {
+		lines[i][1] += y_offset, lines[i][3] += y_offset;
+		int x1 = lines[i][0], y1 = lines[i][1], x2 = lines[i][2], y2 = lines[i][3];
+		double slope = x2 - x1 != 0 ? (tan(double(y2 - y1) / double(x2 - x1)) * 180) / CV_PI : 99.0;
+		while (slope > 360) //slope reference to origin at botton left/mathematical orignal
+			slope -= 360;
+		while (slope < -360)
+			slope += 360;
+		//lane lines are close to +/- 45 degree; horizontal lane lines have slope~0
+		if (!((abs(abs(slope) - 45) > 14.5) || cvIsNaN(slope) || (slope < 0 && (x2 > img.size().width*0.55 || x1 > img.size().width*0.55))
+			|| (slope > 0 && (x2 < img.size().width*0.4 || x1 < img.size().width*0.4)))) {
+			if (slope > 0) {
+				reds.emplace_back(lines[i]);
+				if (y1 < maxRed.y || y2 < maxBlue.y)
+					maxRed = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
+			}
+			else {
+				blues.emplace_back(lines[i]);
+				if (y1 < maxRed.y || y2 < maxBlue.y)
+					maxBlue = (y1 > y2) ? Point(x2, y2) : Point(x1, y1);
+			}
+			cout << ((slope > 0) ? "RED " : "BLUE ") << x1 << " " << x2 << " " << " " << slope << "\n";
 		}
-		line(out, Point(int(xLave / num), int(yLave / num)), Point(int(xRave / num), int(yRave / num)), colOrange, 2, LINE_8, 0);
+	}
+	farthestSlope.push_front(make_pair(maxBlue, maxRed));
+}
+
+void Alg::drawLines(Mat&out, vector<Vec4i> blues, vector<Vec4i> reds) {
+	for(size_t i = 0; i < blues.size(); i++)
+		line(out, Point(blues[i][0], blues[i][1]), Point(blues[i][2], blues[i][3]), colBlue, 2, 8);
+	for (size_t i = 0; i < reds.size(); i++)
+		line(out, Point(reds[i][0], reds[i][1]), Point(reds[i][2], reds[i][3]), colRed, 2, 8);
+}
+
+void Alg::drawOrAndYel(Mat& out) {
+	line(out, farthestSlope.at(0).first, farthestSlope.at(0).second, colYellow, 2, LINE_8, 0);
+	size_t num = 6;
+	if(farthestSlope.size() > num) {
+		farthestSlope.pop_back();
+		pair<Point, Point> bridge = farthestSlope.at(0);
+		for (size_t i = 0; i < num - 1; i++)
+			bridge = make_pair((bridge.first + farthestSlope.at(i + 1).first), (bridge.second + farthestSlope.at(i+1).second));
+		bridge = make_pair(bridge.first / int(num), bridge.second / int(num));
+		line(out, bridge.first, bridge.second, colOrange, 2, LINE_8, 0);
 	}
 }
 
