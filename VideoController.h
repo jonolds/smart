@@ -7,10 +7,11 @@
 using namespace std;
 using namespace cv;
 
+
 class VideoController {
 	VideoCapture vidreader;  VideoWriter writer;
 	Alg * algPtr;
-	int fps;
+	int fps, frameCount;
 	string outWindowName, outVidName;
 	bool stop = false, isVidOpen, isWriterInitialized;
 	vector<double> frProcTimeVec; //used for storing frameprocessing times(in ms
@@ -21,7 +22,7 @@ class VideoController {
 		if (isOutputVideoSaveReqd()) {
 			writer.release(); // release any previous instance of writer object
 			int codec = static_cast<int>(vidreader.get(CAP_PROP_FOURCC));
-			Size sz = Size(vidreader.get(CAP_PROP_FRAME_WIDTH), vidreader.get(CAP_PROP_FRAME_HEIGHT));
+			Size sz = Size(int(vidreader.get(CAP_PROP_FRAME_WIDTH)), int(vidreader.get(CAP_PROP_FRAME_HEIGHT)));
 			writer.open(outVidName, codec, fps, sz, true);
 			if (!writer.isOpened()) {
 				cout << " Error while calling the cv::VideoWriter.open(" << outVidName << ")" << endl;
@@ -32,7 +33,7 @@ class VideoController {
 		}
 	}
 public:
-	VideoController() : algPtr(new Alg()), fps(0), outWindowName("Output"), isVidOpen(false), isWriterInitialized(false) {}
+	VideoController() : algPtr(new Alg()), fps(0), outWindowName("Output"), frameCount(0), isVidOpen(false), isWriterInitialized(false) {}
 	~VideoController() { writer.release(); vidreader.release(); }
 	void setOutVidName(string name) {
 		outVidName = name;
@@ -61,13 +62,15 @@ public:
 		Mat currentFrame, outputFrame;
 		namedWindow(outWindowName);
 		initWriter();
-		int frameCount = 0;
+		frameCount = 0;
 		while (!stop && frameCount < 247) { // read each frame in video	
 			if (!vidreader.read(currentFrame)) // read next frame
 				break;
 			int initialTime = int(getTickCount());
+			if (frameCount > 10 && frameCount < 20) {
+				cout << "frame: " << frameCount << "\n";
+			}
 			algPtr->process(currentFrame, outputFrame);
-			cout << "frame: " << frameCount << "\n";
 			double frameProcessTime = ((double(getTickCount()) - initialTime) / getTickFrequency()) * 1000;
 			frProcTimeVec.push_back(frameProcessTime);
 			imshow(outWindowName, outputFrame);
