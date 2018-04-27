@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Alg.cpp" />
     <ClCompile Include="smart.cpp" />
+    <ClCompile Include="VideoController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alg.h" />
@@ -90,6 +91,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -107,6 +109,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

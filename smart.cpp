@@ -8,9 +8,10 @@ int main() {
 	VideoController vid;
 	vid.setInputVideo("p3.mp4");
 	vid.setOutVidName("myOutputCarLanesVideo.avi");
-	vid.setOutWindowName("processed frame");
+	vid.setOutWindowName("live");
 	vid.run();
-	return 0;
+	cout << utils::getThreadID() << "\n";
+		return 0;
 }
 
 void merge() {
@@ -33,6 +34,7 @@ void merge() {
 	imwrite("finalLanes.jpg", dst);
 	namedWindow("lanes", WINDOW_AUTOSIZE);
 	imshow("lanes", dst);
-	waitKey();
+	waitKeyEx(1);
+	
 }
 
