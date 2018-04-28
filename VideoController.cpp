@@ -12,22 +12,6 @@ VideoController::VideoController() : algPtr(new Alg()), fps(0), frameCount(0), i
 VideoController::~VideoController() {
 	writer.release(); vidreader.release();
 }
-void VideoController::makeKillWindow() {
-	Mat kill(100, 100, CV_8UC4);
-	namedWindow("kill window", WINDOW_GUI_EXPANDED | WINDOW_NORMAL | WINDOW_FREERATIO);
-	circle(kill, Point(50, 50), 50, Scalar(255, 255, 255), CV_FILLED, 8, 0);
-	putText(kill, "KILL IT KILL IT", Point(50, 50), FONT_HERSHEY_COMPLEX, 1, vcColGreen, 3,LINE_8, false);
-
-	setMouseCallback("kill window", killWindows, 0);
-	saveWindowParameters("kill window");
-	loadWindowParameters("kill window");
-	imshow("kill window", kill);
-}
-
-void VideoController::killWindows(int event, int x, int y, int, void* ) {
-	destroyAllWindows();
-}
-
 
 void VideoController::setInputVideo(string ipVideoName) {
 	vidreader.release();
@@ -42,7 +26,6 @@ void VideoController::setInputVideo(string ipVideoName) {
 	vidreader.set(CAP_PROP_FRAME_HEIGHT, 240);
 	isVidOpen = true;
 	fps = int(vidreader.get(CAP_PROP_FPS));
-	cout << "fps: " << fps << "\n";
 }
 
 void VideoController::setOutVidName(string name) {
@@ -78,12 +61,10 @@ void VideoController::run() {
 	namedWindow(outWindowName, WINDOW_GUI_EXPANDED | WINDOW_FREERATIO);
 	initWriter();
 	frameCount = 0;
-	while (!stop && frameCount < 21) { // read each frame in video	
+	while (!stop) { // read each frame in video	
 		if (!vidreader.read(currentFrame)) // read next frame
 			break;
 		int initialTime = int(getTickCount());
-		//if (frameCount > 10 && frameCount < 20)
-		cout << "frame: " << frameCount << "\n";
 		algPtr->process(currentFrame, outputFrame);
 		double frameProcessTime = ((double(getTickCount()) - initialTime) / getTickFrequency()) * 1000;
 		frProcTimeVec.push_back(frameProcessTime);
@@ -97,19 +78,11 @@ void VideoController::run() {
 			waitKey(remainingTime);
 		else
 			waitKey(1); // delay for 1 ms if elaspedtime>delay
-		//waitKey();
 	}
 
 	Scalar m = mean(Mat(frProcTimeVec));
 	cout << "\nMean frame proc time " << sum(sum(m)) << "  frames: " << frProcTimeVec.size() << "\n";
 	writer.release();
 	vidreader.release();
-	waitKey();
 	cvDestroyAllWindows();
-	waitKey(1);
-	waitKey(1);
-	waitKey(1);
-	waitKey(1);
-	waitKey(1);
-
 }

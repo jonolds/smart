@@ -6,8 +6,22 @@ using namespace cv;
 
 Scalar colGreen = Scalar(0, 255, 0), colRed = Scalar(0, 0, 255), colBlue = Scalar(255, 0, 0), colYellow = Scalar(0, 255, 255), 
 	colOrange = Scalar(0, 165, 255), colHotPink = Scalar(153, 0, 204), colWhite = Scalar(255, 255, 255), colBlack = Scalar(0,0,0);
-int frameCount2 = 0, blueCount = 0, redCount = 0;
 
+
+Alg::Alg() {
+	y_offset = 0;
+	frameCount2 = 0;
+	blueCount = 0;
+	redCount = 0;
+}
+
+int Alg::getBcount() {
+	return blueCount;
+}
+
+int Alg::getRcount() {
+	return redCount;
+}
 
 void Alg::process(Mat& src, Mat& out) {
 	vector<Vec4i> lines, blues, reds, blueFrameLines, redFrameLines;
@@ -17,6 +31,18 @@ void Alg::process(Mat& src, Mat& out) {
 	drawLines(out, blueFrameLines, redFrameLines);
 	drawOrAndYel(out);
 	drawBlueWarning(out);
+}
+
+void Alg::setCanny(double low, double high, bool l2g) {
+	lowThresh = low;
+	highThresh = high;
+	l2gradient = l2g;
+}
+
+void Alg::setHough(int hThresh, double minLen, double gapMax) {
+	houghThresh = hThresh;
+	minLength = minLen;
+	maxGap = gapMax;
 }
 
 void Alg::combineLines(vector<Vec4i>& blues, vector<Vec4i>& reds, vector<Vec4i>& blueFrameLines, vector<Vec4i>& redFrameLines) {
@@ -31,26 +57,19 @@ void Alg::combineLines(vector<Vec4i>& blues, vector<Vec4i>& reds, vector<Vec4i>&
 	for (int i = 0; i < Mat(reds).rows; i++) //reds removal
 		if (!((abs(reds[i][0] - redsMean[0]) > redsStdDev[0]) || (abs(reds[i][2] - redsMean[2]) > redsStdDev[2])))
 			redFrameLines.emplace_back(reds[i][0], reds[i][1], reds[i][2], reds[i][3]);
-	double bMinVal;
-	double bMaxVal;
-	Point bMinLoc, bMaxLoc;
-	//blue minMaxLoc
-	
 
-	if (frameCount2 > 10 && frameCount2 < 20) {
-		minMaxLoc(Mat(blueFrameLines[0]), &bMinVal, &bMaxVal, &bMinLoc, &bMaxLoc, Mat());
-		blueCount += Mat(blueFrameLines).rows;
-		redCount += Mat(redFrameLines).rows;
-		cout << "blues:\n" << Mat(blues) << "\n\nBlues pruned:\n" << Mat(blueFrameLines) << "\n";
-		cout << "bluesMean:\n" << Mat(bluesMean) << "\n\nbluesStdDev: \n" << Mat(bluesStdDev) << "\n";
-		cout << "blueFrameLines: \n" << Mat(blueFrameLines) << "\n\n";
-		//cout << "reds:\n" << Mat(reds) << "\n\n";
-		//cout << "Reds pruned:\n" << Mat(redFrameLines) << "\n\nredssMean:\n" << Mat(redsMean) << "\n\n";
-		//cout << "redsStdDev: \n" << Mat(redsStdDev) << "\n\nredFrameLines: \n" << Mat(redFrameLines) << "\n\n";
-		cout << "blueCount: " << Mat(blueFrameLines).rows << "   redCount: " << Mat(redFrameLines).rows << "\n";
-		cout << "Total blueCount: " << blueCount << "   Total redCount: " << redCount << "\n\n";
-		cout << "bMinVal: " << bMinVal << "  bMaxVal: " << bMaxVal << "  bMinLoc: " << bMinLoc << "  bMaxLoc: " << bMaxLoc << "\n\n";
-	}
+	blueCount += Mat(blueFrameLines).rows;
+	redCount += Mat(redFrameLines).rows;
+	//cout << "blues:\n" << Mat(blues) << "\n\nBlues pruned:\n" << Mat(blueFrameLines) << "\n";
+	//cout << "bluesMean:\n" << Mat(bluesMean) << "\n\nbluesStdDev: \n" << Mat(bluesStdDev) << "\n";
+	//cout << "blueFrameLines: \n" << Mat(blueFrameLines) << "\n\n";
+	//cout << "reds:\n" << Mat(reds) << "\n\n";
+	//cout << "Reds pruned:\n" << Mat(redFrameLines) << "\n\nredssMean:\n" << Mat(redsMean) << "\n\n";
+	//cout << "redsStdDev: \n" << Mat(redsStdDev) << "\n\nredFrameLines: \n" << Mat(redFrameLines) << "\n\n";
+	//cout << "blueCount: " << Mat(blueFrameLines).rows << "   redCount: " << Mat(redFrameLines).rows << "\n";
+	/*cout << "Total blueCount: " << blueCount << "   Total redCount: " << redCount << "\n\n";*/
+	//cout << "bMinVal: " << bMinVal << "  bMaxVal: " << bMaxVal << "  bMinLoc: " << bMinLoc << "  bMaxLoc: " << bMaxLoc << "\n\n";
+
 }
 
 Mat Alg::cannyAndHough(Mat& src, Mat& out, vector<Vec4i>& lines) {
@@ -59,7 +78,7 @@ Mat Alg::cannyAndHough(Mat& src, Mat& out, vector<Vec4i>& lines) {
 	out = src.clone();
 	cvtColor(src, img, COLOR_BGR2GRAY);
 	Mat im_edge(img.size(), CV_8U, Scalar::all(0));
-	Canny(img, im_edge, 100, 300, 3);
+	Canny(img, im_edge, lowThresh, highThresh, 3, l2gradient);
 	// Rect(x,y,w,h) w->width=cols;h->rows
 	Mat roi = im_edge(Rect(0, int(0.6 * im_edge.rows), im_edge.cols, im_edge.rows - int(0.6 * im_edge.rows)));
 
@@ -70,7 +89,7 @@ Mat Alg::cannyAndHough(Mat& src, Mat& out, vector<Vec4i>& lines) {
 	//circle(out, Point(im_edge.cols, im_edge.rows - int(0.6 * im_edge.rows)), 8, colGreen, -1, LINE_8, 0);
 	//circle(out, Point(0, int(0.6 * im_edge.rows)), 8, colRed, -1, LINE_8, 0);
 	// 1st best {30, 20, 20} > {30,10,20}>{40, 20, 10} 
-	HoughLinesP(roi, lines, 1, 1 * CV_PI / 180, 30, 20, 40);
+	HoughLinesP(roi, lines, 1, 1 * CV_PI / 180, houghThresh, minLength, maxGap);
 	/* the hough lines are for the roi image- must add offset y to detected lines to display full image */
 	//circle(out, Point(30, 200), 8, colBlue, -1, LINE_8, 0);
 
@@ -81,7 +100,6 @@ Mat Alg::cannyAndHough(Mat& src, Mat& out, vector<Vec4i>& lines) {
 	//circle(out, Point(1280, 432), 12, colWhite, -1, LINE_8, 0);
 
 	setYoffset(int(.6 * im_edge.rows));
-	//setWin();
 	return img;
 }
 
@@ -147,13 +165,6 @@ void Alg::drawBlueWarning(Mat& out) {
 	arrowedLine(out, Point(100, out.size().height / 4), Point(20, out.size().height / 4), colRed, 8, LINE_AA, 0, 0.25);
 	//void arrowedLine(InputOutputArray img, Point pt1, Point pt2, const Scalar &color, int thickness = 1, 
 		//int line_type = 8, int shift = 0, double tipLength = 0.1);
-}
-
-void Alg::setWin() {
-	Mat kill(100, 100, CV_8UC4);
-	namedWindow("kill window", WINDOW_GUI_EXPANDED | WINDOW_NORMAL | WINDOW_FREERATIO);
-	imshow("kill window", kill);
-	waitKey();
 }
 
 void Alg::addText(Mat& tmp, double slope, vector<Vec4i> lines, int i) {
